@@ -8,6 +8,7 @@ import Control.Monad
 import Data.Maybe
 import GHC.Generics
 import qualified Data.HashMap as M
+import qualified Data.MultiMap as MM
 import Data.Hashable
 
 data Expression = BinaryExpression {left :: Expression,
@@ -124,11 +125,13 @@ checkAxiom myMap _ _ = (False, myMap)
 checkAxioms :: [Expression] -> Expression -> Maybe Int
 checkAxioms axioms expr = findIndex (\axiom -> fst $ checkAxiom M.empty expr axiom) axioms
 
-checkMP :: [Expression] -> Expression -> M.Map Expression Int -> (Maybe Int, Maybe Int)
-checkMP proof expr map = (index, join $ (\t -> M.lookup (left $ proof !! t) map) <$> index)
+checkMP :: [(Expression, Int)] -> Expression -> M.Map Expression Int -> (Maybe Int, Maybe Int)
+checkMP [] _ _ = (Nothing, Nothing)
+checkMP proof expr map = (globalIndex, join $ (\t -> M.lookup (left $ fst $ proof !! t) map) <$> localIndex)
                         where 
-                            index = findIndex f proof
-                            f (BinaryExpression left right operator) = (operator == Impl) && (M.member left map) && (right == expr)
+                            globalIndex = (\t -> snd $ proof !! t) <$> localIndex
+                            localIndex = findIndex f proof
+                            f ((BinaryExpression left right Impl), _) = (M.member left map) && (right == expr)
                             f _ = False
 
 axioms = map f 
@@ -149,24 +152,27 @@ parse decl strproof = let
         [assumptions, strGoal] = splitOn "|-" decl
         assump = map makeAnExp $ splitOn "," assumptions
         proof = map makeAnExp strproof
-        (annotations, _, _) = foldl (\(proofs, map, currproofs) line -> let 
+        (annotations, _, _, _) = foldl (\(proofs, map, currproofs, implMap) line -> let 
                 axiomN = checkAxioms axioms line
-                mp = checkMP currproofs line map
+                mp = checkMP (MM.lookup line implMap) line map
                 assN = findIndex (== line) assump
                 annot = if axiomN /= Nothing
                             then (\x -> "Сх. акс. " ++ show (x + 1)) <$> axiomN
                          else if (fst mp) /= Nothing
-                             then ((\x y z n -> x ++ (show $ y) ++ ", " ++ (show $ n - z)) <$> Just "M.P " <*> (snd mp) <*> (fst mp) <*> Just (length currproofs))
+                             then ((\x y z n -> x ++ (show $ y) ++ ", " ++ (show $ z)) <$> Just "M.P. " <*> (snd mp) <*> (fst mp) <*> Just (length currproofs))
                          else if assN /= Nothing
                              then (\x -> "Предп. " ++ show (x + 1)) <$> assN
                          else Just "Не доказано"
-                in ((fromJust annot):proofs, M.insert line (length proofs + 1) map, line:currproofs)) ([], M.empty, []) proof
+                len = length proofs + 1
+                newImplMap expr@(BinaryExpression left right Impl) mmap = MM.insert right (expr, len) mmap
+                newImplMap _ map = map
+                in ((fromJust annot):proofs, M.insert line len map, line:currproofs, (newImplMap line implMap))) ([], M.empty, [], MM.empty) proof
         in foldl1 (\ans s -> s ++ "\n" ++ ans) $ reverse $ zipWith3 (\num proof annot -> "(" ++ show num ++ ") " ++ proof ++ " (" ++ annot ++ ")") [1..] strproof $ reverse annotations
 
 
 main = do
     contents <- readFile "a.in"
-    writeFile "a.out" (let lines = splitOn "\n" (filter (/=' ') contents) in parse (head lines) (tail lines))
+    writeFile "a.out" (let lines = filter (/="") $ splitOn "\n" (filter (/=' ') contents) in parse (head lines) (tail lines))
 
 
 
