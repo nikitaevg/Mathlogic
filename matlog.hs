@@ -41,6 +41,7 @@ priority x
 
 isRightAssos :: Operator -> Bool
 isRightAssos (Impl) = True
+isRightAssos (Neg) = True
 isRightAssos _ = False
 
 isOperand :: String -> Bool
