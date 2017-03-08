@@ -26,9 +26,9 @@ addBrackets s = "(" ++ s ++ ")"
 
 instance Show Expression where
   show (BinaryExpression l r o) = addBrackets $ show l ++ show o ++ show r
-  show (UnaryExpression e o) = addBrackets $ show o ++ show e
-  show (Quant q v e) = addBrackets $ show q ++ show v ++ show e
-  show (Pred p) = addBrackets $ show p
+  show (UnaryExpression e o) = show o ++ show e
+  show (Quant q v e) = show q ++ show v ++ show e
+  show (Pred p) = show p
 
 data Operator = Impl | Disj | Conj | Bracket | Neg | Increase deriving (Eq, Ord)
 instance Show Operator where
@@ -43,13 +43,13 @@ data Predicate = Symbol {nameP :: String,
                       rightTerm :: Term} deriving (Eq, Ord)
 
 tempFunc arr = if (length arr > 0) then 
-                let (a, _) = foldr (\ch (s, comma) -> (((show ch) ++ (if comma then ", " else "") ++ s), True)) ("", False) arr
+                let (a, _) = foldr (\ch (s, comma) -> (((show ch) ++ (if comma then "," else "") ++ s), True)) ("", False) arr
                 in addBrackets a
                else ""
 
 instance Show Predicate where
   show (Symbol n a) = n ++ (tempFunc a)
-  show (Eq l r) = show l ++ " = " ++ show r
+  show (Eq l r) = show l ++ "=" ++ show r
 
 data Quantor = Exists | All deriving (Eq, Ord)
 instance Show Quantor where
