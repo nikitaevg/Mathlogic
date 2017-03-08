@@ -27,4 +27,5 @@ axiomsArithm = map parse
           "a+b'=(a+b)'",
           "a+0=a",
           "a*0=0",
-          "a*b'=a*b+a"]
+          "a*b'=a*b+a",
+          "!a'=0"]

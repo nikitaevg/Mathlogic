@@ -277,9 +277,3 @@ parseProof decl strproof = let
 
 parseP :: [String] -> ([(Expression, Annotation)], Maybe ErrorWithNum, Maybe (Expression, Int), String)
 parseP s = parseProof (head s) (tail s)
-
--- main = print $ show $ parseProof "F(0, x), @y(F(y, x) -> F(y', x))|- F(y, x)" 
--- 				["F(0, x)", "@y(F(y, x) -> F(y', x))", "F(0, x) -> @y(F(y, x) -> F(y', x)) -> (F(0, x) & @y(F(y, x) -> F(y', x)))",
--- 					"@y(F(y, x) -> F(y', x)) -> (F(0, x) & @y(F(y, x) -> F(y', x)))", "F(0, x) & @y(F(y, x) -> F(y', x))", 
--- 					"(F(0, x) & @y(F(y, x) -> F(y', x)))->F(y, x)", "F(y, x)"]
-
