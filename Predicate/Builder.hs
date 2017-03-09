@@ -1,6 +1,7 @@
 module Predicate.Builder
 (
-	build
+	build,
+	replace'
 )
 where
 import Predicate.Checker
@@ -9,12 +10,12 @@ import Data.Char
 
 type Files = (([String], [String]), [String])
 
-replace :: [Expression] -> String -> String
+replace :: (Show a) => [a] -> String -> String
 replace arr (x:xs) = if isDigit x then ("(" ++ show (arr !! (digitToInt x)) ++ ")") ++ (replace arr xs)
 					 else x:(replace arr xs)
 replace arr "" = ""
 
-replace' :: [Expression] -> String -> Expression
+replace' :: (Show a) => [a] -> String -> Expression
 replace' a s = parse $ replace a s
 
 rebuild :: (Expression, Annotation) -> (Expression, Int) -> Files -> [Expression]
